@@ -1,8 +1,5 @@
 # CSI-Addons for Kubernetes
 
-This repository contains the implementation for the [CSI-Addons][csi_addons]
-specification that can be used with Kubernetes.
-
 The [CSI API][csi] is tightly integrated with Kubernetes. In order to extend
 the interface, a new CSI-Addons Controller is needed. The CSI-Addons Controller
 will watch for Kubernetes events (CRs) and relay operation initiated by the
