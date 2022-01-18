@@ -8,7 +8,7 @@ user to the CSI-driver.
 ```
 .------.   CR  .------------.
 | User |-------| CSI-Addons |
-'------'       | Controller |
+'------'       | |
                '------------'
                       |
                       | gRPC
