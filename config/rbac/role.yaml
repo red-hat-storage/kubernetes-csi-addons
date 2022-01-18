@@ -1,4 +1,3 @@
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -6,6 +5,22 @@ metadata:
   creationTimestamp: null
   name: manager-role
 rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - csiaddons.openshift.io
   resources:
@@ -61,6 +76,32 @@ rules:
 - apiGroups:
   - csiaddons.openshift.io
   resources:
+  - reclaimspacecronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
+  - reclaimspacecronjobs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
+  - reclaimspacecronjobs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
   - reclaimspacejobs
   verbs:
   - create
@@ -84,3 +125,11 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+  verbs:
+  - get
+  - list
+  - watch
