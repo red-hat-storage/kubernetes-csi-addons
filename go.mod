@@ -5,15 +5,17 @@ go 1.17
 require (
 	github.com/container-storage-interface/spec v1.5.0
 	github.com/csi-addons/spec v0.1.2-0.20211220115741-32fa508dadbe
-	github.com/go-logr/logr v1.2.0
+	github.com/go-logr/logr v1.2.2
 	github.com/golang/protobuf v1.5.2
 	github.com/kubernetes-csi/csi-lib-utils v0.10.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
-	github.com/operator-framework/operator-sdk v1.15.0
+	github.com/operator-framework/operator-sdk v1.16.0
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
+	k8s.io/api v0.23.1
 	k8s.io/apimachinery v0.23.1
 	k8s.io/client-go v0.23.1
 	k8s.io/klog/v2 v2.40.1
@@ -140,7 +142,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2-0.20190823105129-775207bd45b6 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
-	github.com/operator-framework/api v0.10.7 // indirect
+	github.com/operator-framework/api v0.11.1-0.20220110184307-ff6b5ebe3c25 // indirect
 	github.com/operator-framework/java-operator-plugins v0.1.0 // indirect
 	github.com/operator-framework/operator-registry v1.17.4 // indirect
 	github.com/otiai10/copy v1.2.0 // indirect
@@ -209,7 +211,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	helm.sh/helm/v3 v3.6.2 // indirect
-	k8s.io/api v0.23.1 // indirect
 	k8s.io/apiextensions-apiserver v0.23.0 // indirect
 	k8s.io/apiserver v0.23.0 // indirect
 	k8s.io/cli-runtime v0.21.0 // indirect
@@ -219,7 +220,7 @@ require (
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.25 // indirect
-	sigs.k8s.io/kubebuilder/v3 v3.0.0-alpha.0.0.20211001202619-87eb9d55ecdc // indirect
+	sigs.k8s.io/kubebuilder/v3 v3.2.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/cmd/config v0.10.2 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect

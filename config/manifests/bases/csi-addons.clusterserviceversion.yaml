@@ -4,7 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
-  name: csi-addons.v0.0.0
+  name: csi-addons.v0.1.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -19,6 +19,11 @@ spec:
       displayName: Network Fence
       kind: NetworkFence
       name: networkfences.csiaddons.openshift.io
+      version: v1alpha1
+    - description: ReclaimSpaceCronJob is the Schema for the reclaimspacecronjobs API
+      displayName: Reclaim Space CronJob
+      kind: ReclaimSpaceCronJob
+      name: reclaimspacecronjobs.csiaddons.openshift.io
       version: v1alpha1
     - description: ReclaimSpaceJob is the Schema for the reclaimspacejobs API
       displayName: Reclaim Space Job
@@ -36,7 +41,7 @@ spec:
       deployments: null
     strategy: ""
   installModes:
-  - supported: false
+  - supported: true
     type: OwnNamespace
   - supported: false
     type: SingleNamespace
@@ -56,4 +61,4 @@ spec:
   maturity: alpha
   provider:
     name: CSI Addons Community
-  version: 0.0.0
+  version: 0.1.1

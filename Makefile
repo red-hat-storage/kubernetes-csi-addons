@@ -1,11 +1,23 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/csiaddons/k8s-controller:latest
+CONTROLLER_IMG ?= quay.io/csiaddons/k8s-controller
 SIDECAR_IMG ?= quay.io/csiaddons/k8s-sidecar
 BUNDLE_IMG ?= quay.io/csiaddons/k8s-bundle
-TAG?= latest
 
-BUNDLE_VERSION ?= 0.0.1
+# set TAG to a release for consumption in the bundle
+TAG ?= latest
+
+# the PACKAGE_NAME is included in the bundle/CSV and is used in catalogsources
+# for operators (like OperatorHub.io). Products that include the CSI-Addons
+# bundle should use a different PACKAGE_NAME to prevent conflicts.
+PACKAGE_NAME ?= csi-addons
+
+# The default version of the bundle (CSV) can be found in
+# config/manifests/bases/csi-addons.clusterserviceversion.yaml . When tagging a
+# release, the bundle will be versioned with the same value as well.
+ifneq ($(TAG),latest)
+BUNDLE_VERSION ?= --version=$(shell sed s/^v// <<< $(TAG))
+endif
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
@@ -47,12 +59,12 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./cmd/... ./controllers/... ./sidecar/..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="{./api/...,./cmd/...,./controllers/...,./sidecar/...}" output:crd:artifacts:config=config/crd/bases
 
 .PHONY: bundle
 bundle: kustomize operator-sdk
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | $(OPERATOR_SDK) generate bundle --manifests --metadata --package=csi-addons --version=$(BUNDLE_VERSION)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG):$(TAG)
+	$(KUSTOMIZE) build config/default | $(OPERATOR_SDK) generate bundle --manifests --metadata --package=$(PACKAGE_NAME) $(BUNDLE_VERSION)
 	mkdir -p ./bundle/tests/scorecard && $(KUSTOMIZE) build config/scorecard --output=./bundle/tests/scorecard/config.yaml
 
 .PHONY: generate
@@ -93,11 +105,11 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	docker build -t ${CONTROLLER_IMG}:${TAG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker push ${CONTROLLER_IMG}:${TAG}
 
 .PHONY: docker-build-sidecar
 docker-build-sidecar:
@@ -131,7 +143,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${CONTROLLER_IMG}:${TAG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
