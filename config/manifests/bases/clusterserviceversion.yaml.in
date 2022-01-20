@@ -4,6 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
+    operators.operatorframework.io/operator-type: non-standalone
   name: @PACKAGE_NAME@.v0.1.1
   namespace: placeholder
 spec:
