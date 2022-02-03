@@ -32,10 +32,7 @@ PACKAGE_NAME ?= csi-addons
 # the kube-rbac-proxy can easily be tested. Products that include CSI-Addons
 # may want to provide a different location of the container-image.
 # The default value is set in config/default/kustomization.yaml
-#RBAC_PROXY_IMG ?= gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
-ifneq ($(RBAC_PROXY_IMG),)
-KUSTOMIZE_RBAC_PROXY := rbac-proxy=$(RBAC_PROXY_IMG)
-endif
+RBAC_PROXY_IMG ?= gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
 
 # The default version of the bundle (CSV) can be found in
 # config/manifests/bases/csi-addons.clusterserviceversion.yaml . When tagging a
@@ -83,16 +80,19 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: controller-gen kustomize ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="{./api/...,./cmd/...,./controllers/...,./sidecar/...}" output:crd:artifacts:config=config/crd/bases
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${CONTROLLER_IMG} rbac-proxy=${RBAC_PROXY_IMG}
+	$(KUSTOMIZE) build config/crd > deploy/controller/crds.yaml
+	$(KUSTOMIZE) build config/rbac > deploy/controller/rbac.yaml
+	$(KUSTOMIZE) build config/manager > deploy/controller/setup-controller.yaml
 
 # generate the <package-name>.clusterserviceversion.yaml
 config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml: config/manifests/bases/clusterserviceversion.yaml.in
 	sed 's/@PACKAGE_NAME@/$(PACKAGE_NAME)/g' < $^ > $@
 
 .PHONY: bundle
-bundle: config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml kustomize operator-sdk
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG) $(KUSTOMIZE_RBAC_PROXY)
+bundle: config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml manifests operator-sdk
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --manifests --metadata --package=$(PACKAGE_NAME) $(BUNDLE_VERSION)
 
 .PHONY: generate
@@ -162,21 +162,20 @@ ifndef ignore-not-found
 endif
 
 .PHONY: install
-install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+install: manifests ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+	kubectl apply -f deploy/controller/crds.yaml
 
 .PHONY: uninstall
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deploy/controller/crds.yaml
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${CONTROLLER_IMG} $(KUSTOMIZE_RBAC_PROXY)
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	cd deploy/controller && kubectl apply -f crds.yaml -f rbac.yaml -f setup-controller.yaml
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	cd deploy/controller && kubectl delete -f setup-controller.yaml -f rbac.yaml -f crds.yaml --ignore-not-found=$(ignore-not-found)
 
 # controller-gen gets installed from the vendor/ directory.
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
