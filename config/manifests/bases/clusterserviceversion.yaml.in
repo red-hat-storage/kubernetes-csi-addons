@@ -55,7 +55,7 @@ spec:
   - csi
   links:
   - name: CSI Addons
-    url: https://github.com/csi-addons
+    url: https://csi-addons.github.io
   maintainers:
   - email: csi-addons@redhat.com
     name: CSI Addons Community
