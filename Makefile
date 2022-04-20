@@ -28,6 +28,16 @@ endif
 # bundle should use a different PACKAGE_NAME to prevent conflicts.
 PACKAGE_NAME ?= csi-addons
 
+# Each CSV has a replaces parameter that indicates which Operator it replaces.
+# This builds a graph of CSVs that can be queried by OLM, and updates can be
+# shared between channels. Channels can be thought of as entry points into
+# the graph of updates:
+REPLACES ?= ""
+
+# Creating the New CatalogSource requires publishing CSVs that replace one Operator,
+# but can skip several. This can be accomplished using the skipRange annotation:
+SKIP_RANGE ?= ""
+
 # By setting RBAC_PROXY_IMG to a different container-image, new versions of
 # the kube-rbac-proxy can easily be tested. Products that include CSI-Addons
 # may want to provide a different location of the container-image.
@@ -86,13 +96,13 @@ help: ## Display this help.
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="{./api/...,./cmd/...,./controllers/...,./sidecar/...}" output:crd:artifacts:config=config/crd/bases
 
-# generate the <package-name>.clusterserviceversion.yaml
-config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml: config/manifests/bases/clusterserviceversion.yaml.in
-	sed 's/@PACKAGE_NAME@/$(PACKAGE_NAME)/g' < $^ > $@
+# generate the <package-name>.clusterserviceversion.yaml base
+gen-csv-base:
+	sed 's/@PACKAGE_NAME@/$(PACKAGE_NAME)/g;s/@SKIP_RANGE@/$(SKIP_RANGE)/g;s/@REPLACES@/$(REPLACES)/g' \
+	< config/manifests/bases/clusterserviceversion.yaml.in > config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml
 
 .PHONY: bundle
-bundle: config/manifests/bases/$(PACKAGE_NAME).clusterserviceversion.yaml kustomize operator-sdk
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(CONTROLLER_IMG) $(KUSTOMIZE_RBAC_PROXY)
+bundle: gen-csv-base manifests kustomize operator-sdk
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --manifests --metadata --package=$(PACKAGE_NAME) $(BUNDLE_VERSION)
 
 .PHONY: generate
