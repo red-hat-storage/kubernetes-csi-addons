@@ -12,6 +12,22 @@ updates:
       prefix: "vendor"
     labels:
       - vendor
+    groups:
+      golang-dependencies:
+        patterns:
+          - "github.com/golang*"
+          - "google.golang.org/*"
+          - "golang.org/x/*"
+      k8s-dependencies:
+        patterns:
+          - "k8s.io*"
+          - "sigs.k8s.io*"
+      github-dependencies:
+        patterns:
+          - "github.com*"
+        exclude-patterns:
+          - "github.com/golang*"
+          - "github.com/container-storage-interface/spec"
   - package-ecosystem: "gomod"
     # ODF only: disable PR creation, synced from upstream
     open-pull-requests-limit: 0
@@ -23,6 +39,20 @@ updates:
       prefix: "vendor"
     labels:
       - vendor
+    groups:
+      golang-dependencies:
+        patterns:
+          - "github.com/golang*"
+          - "google.golang.org/*"
+      k8s-dependencies:
+        patterns:
+          - "k8s.io*"
+          - "sigs.k8s.io*"
+      github-dependencies:
+        patterns:
+          - "github.com*"
+        exclude-patterns:
+          - "github.com/golang*"
   - package-ecosystem: "github-actions"
     # ODF only: disable PR creation, synced from upstream
     open-pull-requests-limit: 0
