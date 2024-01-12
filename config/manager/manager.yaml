@@ -25,6 +25,9 @@ spec:
             - /csi-addons-manager
           args:
             - --leader-elect
+            - --leader-election-lease-duration=137s
+            - --leader-election-renew-deadline=107s
+            - --leader-election-retry-period=26s
           image: controller:latest
           name: manager
           env:
