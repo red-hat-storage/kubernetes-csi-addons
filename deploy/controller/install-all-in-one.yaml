@@ -1387,6 +1387,7 @@ spec:
             memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
@@ -1409,6 +1410,9 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       securityContext:
         runAsNonRoot: true
       serviceAccountName: csi-addons-controller-manager
