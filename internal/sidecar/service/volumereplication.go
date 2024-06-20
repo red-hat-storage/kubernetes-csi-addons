@@ -63,24 +63,14 @@ func (rs *ReplicationServer) EnableVolumeReplication(
 		klog.Errorf("Failed to get secret %s in namespace %s: %v", req.GetSecretName(), req.GetSecretNamespace(), err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	repReq := &csiReplication.EnableVolumeReplicationRequest{
-		ReplicationId: req.GetReplicationId(),
-		Parameters:    req.GetParameters(),
-		Secrets:       data,
-	}
-	if req.VolumeId != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-	_, err = rs.controllerClient.EnableVolumeReplication(ctx, repReq)
 
+	_, err = rs.controllerClient.EnableVolumeReplication(ctx,
+		&csiReplication.EnableVolumeReplicationRequest{
+			VolumeId:      req.VolumeId,
+			ReplicationId: req.ReplicationId,
+			Parameters:    req.Parameters,
+			Secrets:       data,
+		})
 	if err != nil {
 		klog.Errorf("Failed to enable volume replication: %v", err)
 		return nil, err
@@ -101,24 +91,13 @@ func (rs *ReplicationServer) DisableVolumeReplication(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	repReq := &csiReplication.DisableVolumeReplicationRequest{
-		ReplicationId: req.GetReplicationId(),
-		Parameters:    req.GetParameters(),
-		Secrets:       data,
-	}
-	if req.GetVolumeId() != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-
-	_, err = rs.controllerClient.DisableVolumeReplication(ctx, repReq)
+	_, err = rs.controllerClient.DisableVolumeReplication(ctx,
+		&csiReplication.DisableVolumeReplicationRequest{
+			VolumeId:      req.VolumeId,
+			ReplicationId: req.ReplicationId,
+			Parameters:    req.Parameters,
+			Secrets:       data,
+		})
 	if err != nil {
 		klog.Errorf("Failed to disable volume replication: %v", err)
 		return nil, err
@@ -139,25 +118,14 @@ func (rs *ReplicationServer) PromoteVolume(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	repReq := &csiReplication.PromoteVolumeRequest{
-		ReplicationId: req.GetReplicationId(),
-		Parameters:    req.GetParameters(),
-		Force:         req.GetForce(),
-		Secrets:       data,
-	}
-	if req.GetVolumeId() != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-
-	_, err = rs.controllerClient.PromoteVolume(ctx, repReq)
+	_, err = rs.controllerClient.PromoteVolume(ctx,
+		&csiReplication.PromoteVolumeRequest{
+			VolumeId:      req.VolumeId,
+			ReplicationId: req.ReplicationId,
+			Force:         req.Force,
+			Parameters:    req.Parameters,
+			Secrets:       data,
+		})
 	if err != nil {
 		klog.Errorf("Failed to promote volume: %v", err)
 		return nil, err
@@ -178,24 +146,14 @@ func (rs *ReplicationServer) DemoteVolume(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	repReq := &csiReplication.DemoteVolumeRequest{
-		ReplicationId: req.GetReplicationId(),
-		Parameters:    req.GetParameters(),
-		Force:         req.GetForce(),
-		Secrets:       data,
-	}
-	if req.GetVolumeId() != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-	_, err = rs.controllerClient.DemoteVolume(ctx, repReq)
+	_, err = rs.controllerClient.DemoteVolume(ctx,
+		&csiReplication.DemoteVolumeRequest{
+			VolumeId:      req.VolumeId,
+			ReplicationId: req.ReplicationId,
+			Force:         req.Force,
+			Parameters:    req.Parameters,
+			Secrets:       data,
+		})
 	if err != nil {
 		klog.Errorf("Failed to demote volume: %v", err)
 		return nil, err
@@ -216,25 +174,14 @@ func (rs *ReplicationServer) ResyncVolume(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	repReq := &csiReplication.ResyncVolumeRequest{
-		ReplicationId: req.GetReplicationId(),
-		Parameters:    req.GetParameters(),
-		Force:         req.GetForce(),
-		Secrets:       data,
-	}
-	if req.GetVolumeId() != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-
-	resp, err := rs.controllerClient.ResyncVolume(ctx, repReq)
+	resp, err := rs.controllerClient.ResyncVolume(ctx,
+		&csiReplication.ResyncVolumeRequest{
+			VolumeId:      req.VolumeId,
+			ReplicationId: req.ReplicationId,
+			Force:         req.Force,
+			Parameters:    req.Parameters,
+			Secrets:       data,
+		})
 	if err != nil {
 		klog.Errorf("Failed to resync volume: %v", err)
 		return nil, err
@@ -257,23 +204,12 @@ func (rs *ReplicationServer) GetVolumeReplicationInfo(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	repReq := &csiReplication.GetVolumeReplicationInfoRequest{
-		ReplicationId: req.GetReplicationId(),
-		Secrets:       data,
-	}
-	if req.GetVolumeId() != "" {
-		// setting repReq.VolumeId for backward compatibility for volume replication of a given volume
-		repReq.VolumeId = req.GetVolumeId() // nolint:staticcheck
-		repReq.ReplicationSource = &csiReplication.ReplicationSource{
-			Type: &csiReplication.ReplicationSource_Volume{
-				Volume: &csiReplication.ReplicationSource_VolumeSource{
-					VolumeId: req.GetVolumeId(),
-				},
-			},
-		}
-	}
-
-	resp, err := rs.controllerClient.GetVolumeReplicationInfo(ctx, repReq)
+	resp, err := rs.controllerClient.GetVolumeReplicationInfo(ctx,
+		&csiReplication.GetVolumeReplicationInfoRequest{
+			VolumeId:      req.VolumeId,
+			Secrets:       data,
+			ReplicationId: req.ReplicationId,
+		})
 	if err != nil {
 		klog.Errorf("Failed to get volume replication info: %v", err)
 		return nil, err
