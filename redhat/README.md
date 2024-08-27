@@ -11,7 +11,7 @@ This GitHub repository contains branches for different product versions.
 
 ## Backports
 
-All changes in this repository are *backports* from the [upstream
+All changes in this repository are _backports_ from the [upstream
 project][upstream-k8s-csi-addons]. There should be no functional changes (only
 process/CI/building/..) in this repository compared to the upstream project.
 Fixes for any of the release branches should first land in the `main` branch

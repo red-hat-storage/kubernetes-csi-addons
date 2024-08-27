@@ -8,4 +8,3 @@ Sync the upstream changes from `csi-addons/kubernetes-csi-addons:main` into the
 - the new foz bar baz works flawlessly
 - this addresses a bug where users are facing issues with XYZ
 - ...
-
