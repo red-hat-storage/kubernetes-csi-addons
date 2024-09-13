@@ -26,6 +26,7 @@ const (
 	ConditionCompleted = "Completed"
 	ConditionDegraded  = "Degraded"
 	ConditionResyncing = "Resyncing"
+	ConditionValidated = "Validated"
 )
 
 const (
@@ -40,6 +41,10 @@ const (
 	ResyncTriggered = "ResyncTriggered"
 	FailedToResync  = "FailedToResync"
 	NotResyncing    = "NotResyncing"
+	// PrerequisiteMet condition represents that the prerequisite is met.
+	PrerequisiteMet = "PrerequisiteMet"
+	// PrerequisiteNotMet condition represents that the prerequisite is not met.
+	PrerequisiteNotMet = "PrerequisiteNotMet"
 )
 
 // sets conditions when volume was promoted successfully.
@@ -81,6 +86,40 @@ func setFailedPromotionCondition(conditions *[]metav1.Condition, observedGenerat
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
+		ObservedGeneration: observedGeneration,
+		Status:             metav1.ConditionFalse,
+	})
+	setStatusCondition(conditions, &metav1.Condition{
+		Type:               ConditionValidated,
+		Reason:             PrerequisiteMet,
+		ObservedGeneration: observedGeneration,
+		Status:             metav1.ConditionTrue,
+	})
+}
+
+// sets conditions when volume promotion was failed due to failed validation.
+func setFailedValidationCondition(conditions *[]metav1.Condition, observedGeneration int64) {
+	setStatusCondition(conditions, &metav1.Condition{
+		Type:               ConditionCompleted,
+		Reason:             FailedToPromote,
+		ObservedGeneration: observedGeneration,
+		Status:             metav1.ConditionFalse,
+	})
+	setStatusCondition(conditions, &metav1.Condition{
+		Type:               ConditionDegraded,
+		Reason:             Error,
+		ObservedGeneration: observedGeneration,
+		Status:             metav1.ConditionTrue,
+	})
+	setStatusCondition(conditions, &metav1.Condition{
+		Type:               ConditionResyncing,
+		Reason:             NotResyncing,
+		ObservedGeneration: observedGeneration,
+		Status:             metav1.ConditionFalse,
+	})
+	setStatusCondition(conditions, &metav1.Condition{
+		Type:               ConditionValidated,
+		Reason:             PrerequisiteNotMet,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
 	})
