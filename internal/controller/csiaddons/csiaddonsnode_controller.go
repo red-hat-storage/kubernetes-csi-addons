@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -26,6 +27,7 @@ import (
 
 	csiaddonsv1alpha1 "github.com/csi-addons/kubernetes-csi-addons/api/csiaddons/v1alpha1"
 	"github.com/csi-addons/kubernetes-csi-addons/internal/connection"
+	"github.com/csi-addons/kubernetes-csi-addons/internal/proto"
 	"github.com/csi-addons/kubernetes-csi-addons/internal/util"
 	"github.com/csi-addons/spec/lib/go/identity"
 
@@ -42,8 +44,6 @@ import (
 
 var (
 	csiAddonsNodeFinalizer = csiaddonsv1alpha1.GroupVersion.Group + "/csiaddonsnode"
-
-	errLegacyEndpoint = errors.New("legacy formatted endpoint")
 )
 
 // CSIAddonsNodeReconciler reconciles a CSIAddonsNode object
@@ -95,8 +95,19 @@ func (r *CSIAddonsNodeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	nodeID := csiAddonsNode.Spec.Driver.NodeID
 	driverName := csiAddonsNode.Spec.Driver.Name
 
-	key := csiAddonsNode.Namespace + "/" + util.NormalizeLeaseName(csiAddonsNode.Name)
 	logger = logger.WithValues("NodeID", nodeID, "DriverName", driverName)
+
+	podName, endPoint, err := r.resolveEndpoint(ctx, csiAddonsNode.Spec.Driver.EndPoint)
+	if err != nil {
+		logger.Error(err, "Failed to resolve endpoint")
+		return ctrl.Result{}, fmt.Errorf("failed to resolve endpoint %q: %w", csiAddonsNode.Spec.Driver.EndPoint, err)
+	}
+
+	// namespace + "/" + leader identity(pod name) is the key for the connection.
+	// this key is used by GetLeaderByDriver to get the connection
+	key := csiAddonsNode.Namespace + "/" + podName
+
+	logger = logger.WithValues("EndPoint", endPoint)
 
 	if !csiAddonsNode.DeletionTimestamp.IsZero() {
 		// if deletion timestamp is set, the CSIAddonsNode is getting deleted,
@@ -106,14 +117,6 @@ func (r *CSIAddonsNodeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		err = r.removeFinalizer(ctx, &logger, csiAddonsNode)
 		return ctrl.Result{}, err
 	}
-
-	endPoint, err := r.resolveEndpoint(ctx, csiAddonsNode.Spec.Driver.EndPoint)
-	if err != nil {
-		logger.Error(err, "Failed to resolve endpoint")
-		return ctrl.Result{}, fmt.Errorf("failed to resolve endpoint %q: %w", csiAddonsNode.Spec.Driver.EndPoint, err)
-	}
-
-	logger = logger.WithValues("EndPoint", endPoint)
 
 	if err := r.addFinalizer(ctx, &logger, csiAddonsNode); err != nil {
 		return ctrl.Result{}, err
@@ -137,6 +140,13 @@ func (r *CSIAddonsNodeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
+	nfsc, err := r.getNetworkFenceClientStatus(ctx, &logger, newConn, csiAddonsNode)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	csiAddonsNode.Status.NetworkFenceClientStatus = nfsc
+
 	logger.Info("Successfully connected to sidecar")
 	r.ConnPool.Put(key, newConn)
 	logger.Info("Added connection to connection pool", "Key", key)
@@ -154,11 +164,122 @@ func (r *CSIAddonsNodeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
+// getNetworkFenceClassesForDriver gets the networkfenceclasses for the driver.
+func (r *CSIAddonsNodeReconciler) getNetworkFenceClassesForDriver(ctx context.Context, logger *logr.Logger,
+	instance *csiaddonsv1alpha1.CSIAddonsNode) ([]csiaddonsv1alpha1.NetworkFenceClass, error) {
+	// get the networkfenceclasses from the annotation
+	nfclasses := make([]csiaddonsv1alpha1.NetworkFenceClass, 0)
+	classesJSON, ok := instance.GetAnnotations()[networkFenceClassAnnotationKey]
+	if !ok {
+		logger.Info("No networkfenceclasses found in annotation")
+		return nfclasses, nil
+	}
+
+	var classes []string
+
+	// Unmarshal the existing JSON into a slice of strings.
+	if err := json.Unmarshal([]byte(classesJSON), &classes); err != nil {
+		logger.Error(err, "Failed to unmarshal existing networkFenceClasses annotation", "name", instance.Name)
+		return nfclasses, err
+	}
+
+	for _, class := range classes {
+		logger.Info("Found networkfenceclass ", "name", class)
+		nfc := csiaddonsv1alpha1.NetworkFenceClass{}
+		err := r.Client.Get(ctx, client.ObjectKey{Name: class}, &nfc)
+		if err != nil {
+			logger.Error(err, "Failed to get networkfenceclass", "name", class)
+			return nil, err
+		}
+		nfclasses = append(nfclasses, nfc)
+	}
+
+	return nfclasses, nil
+}
+
+func (r *CSIAddonsNodeReconciler) getNetworkFenceClientStatus(ctx context.Context, logger *logr.Logger, conn *connection.Connection, csiAddonsNode *csiaddonsv1alpha1.CSIAddonsNode) ([]csiaddonsv1alpha1.NetworkFenceClientStatus, error) {
+
+	nfclasses, err := r.getNetworkFenceClassesForDriver(ctx, logger, csiAddonsNode)
+	if err != nil {
+		logger.Error(err, "Failed to get network fence classes")
+		return nil, err
+	}
+
+	var nfsc []csiaddonsv1alpha1.NetworkFenceClientStatus
+
+	for _, nfc := range nfclasses {
+		clients, err := getFenceClientDetails(ctx, conn, logger, nfc)
+		if err != nil {
+			logger.Error(err, "Failed to get clients to fence", "networkFenceClass", nfc.Name)
+			return nil, err
+		}
+
+		// If no clients are found, skip this network fence class
+		if clients == nil {
+			continue
+		}
+
+		// process the client details for this network fence class
+		clientDetails := r.getClientDetails(clients)
+		nfsc = append(nfsc, csiaddonsv1alpha1.NetworkFenceClientStatus{
+			NetworkFenceClassName: nfc.Name,
+			ClientDetails:         clientDetails,
+		})
+	}
+
+	return nfsc, nil
+}
+
+// getClientDetails processes the client details to create the necessary status
+func (r *CSIAddonsNodeReconciler) getClientDetails(clients *proto.FenceClientsResponse) []csiaddonsv1alpha1.ClientDetail {
+	var clientDetails []csiaddonsv1alpha1.ClientDetail
+	for _, client := range clients.Clients {
+		clientDetails = append(clientDetails, csiaddonsv1alpha1.ClientDetail{
+			Id:    client.Id,
+			Cidrs: client.Cidrs,
+		})
+	}
+	return clientDetails
+}
+
+// getFenceClientDetails gets the list of clients to fence from the driver.
+func getFenceClientDetails(ctx context.Context, conn *connection.Connection, logger *logr.Logger, nfc csiaddonsv1alpha1.NetworkFenceClass) (*proto.FenceClientsResponse, error) {
+
+	param := nfc.Spec.Parameters
+	secretName := param[prefixedNetworkFenceSecretNameKey]
+	secretNamespace := param[prefixedNetworkFenceSecretNamespaceKey]
+	// Remove secret from the parameters
+	delete(param, prefixedNetworkFenceSecretNameKey)
+	delete(param, prefixedNetworkFenceSecretNamespaceKey)
+
+	// check if the driver contains the GET_CLIENTS_TO_FENCE capability
+	// if it does, we need to get the list of clients to fence
+	for _, cap := range conn.Capabilities {
+		if cap.GetNetworkFence() != nil &&
+			cap.GetNetworkFence().GetType() == identity.Capability_NetworkFence_GET_CLIENTS_TO_FENCE {
+			logger.Info("Driver support GET_CLIENTS_TO_FENCE capability")
+			client := proto.NewNetworkFenceClient(conn.Client)
+			req := &proto.FenceClientsRequest{
+				Parameters:      nfc.Spec.Parameters,
+				SecretName:      secretName,
+				SecretNamespace: secretNamespace,
+			}
+			clients, err := client.GetFenceClients(ctx, req)
+			if err != nil {
+				logger.Error(err, "Failed to get clients to fence")
+				return nil, err
+			}
+			return clients, nil
+		}
+	}
+	return nil, nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *CSIAddonsNodeReconciler) SetupWithManager(mgr ctrl.Manager, ctrlOptions controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&csiaddonsv1alpha1.CSIAddonsNode{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.AnnotationChangedPredicate{})).
 		WithOptions(ctrlOptions).
 		Complete(r)
 }
@@ -203,14 +324,12 @@ func (r *CSIAddonsNodeReconciler) removeFinalizer(
 	return nil
 }
 
-// resolveEndpoint parses the endpoint and returned a string that can be used
+// resolveEndpoint parses the endpoint and returned a endpoint and pod name that can be used
 // by GRPC to connect to the sidecar.
-func (r *CSIAddonsNodeReconciler) resolveEndpoint(ctx context.Context, rawURL string) (string, error) {
+func (r *CSIAddonsNodeReconciler) resolveEndpoint(ctx context.Context, rawURL string) (string, string, error) {
 	namespace, podname, port, err := parseEndpoint(rawURL)
-	if err != nil && errors.Is(err, errLegacyEndpoint) {
-		return rawURL, nil
-	} else if err != nil {
-		return "", err
+	if err != nil {
+		return "", "", err
 	}
 
 	pod := &corev1.Pod{}
@@ -219,23 +338,18 @@ func (r *CSIAddonsNodeReconciler) resolveEndpoint(ctx context.Context, rawURL st
 		Name:      podname,
 	}, pod)
 	if err != nil {
-		return "", fmt.Errorf("failed to get pod %s/%s: %w", namespace, podname, err)
+		return "", "", fmt.Errorf("failed to get pod %s/%s: %w", namespace, podname, err)
 	} else if pod.Status.PodIP == "" {
-		return "", fmt.Errorf("pod %s/%s does not have an IP-address", namespace, podname)
+		return "", "", fmt.Errorf("pod %s/%s does not have an IP-address", namespace, podname)
 	}
 
-	return fmt.Sprintf("%s:%s", pod.Status.PodIP, port), nil
+	return podname, fmt.Sprintf("%s:%s", pod.Status.PodIP, port), nil
 }
 
 // parseEndpoint returns the rawURL if it is in the legacy <IP-address>:<port>
 // format. When the recommended format is used, it returns the Namespace,
 // PodName, Port and error instead.
 func parseEndpoint(rawURL string) (string, string, string, error) {
-	// assume old formatted endpoint, don't parse it
-	if !strings.Contains(rawURL, "://") {
-		return "", "", "", errLegacyEndpoint
-	}
-
 	endpoint, err := url.Parse(rawURL)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to parse endpoint %q: %w", rawURL, err)
