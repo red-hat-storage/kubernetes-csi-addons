@@ -25,6 +25,7 @@ spec:
         kubectl.kubernetes.io/default-container: manager
       labels:
         app.kubernetes.io/name: csi-addons
+        control-plane: controller-manager
     spec:
       securityContext:
         runAsNonRoot: true
@@ -32,12 +33,17 @@ spec:
         - command:
             - /csi-addons-manager
           args:
+            - --namespace=$(POD_NAMESPACE)
             - --leader-elect
             - --leader-election-lease-duration=137s
             - --leader-election-renew-deadline=107s
             - --leader-election-retry-period=26s
           image: controller:latest
           name: manager
+          ports:
+            - name: metrics
+              containerPort: 8443
+              protocol: TCP
           env:
             - name: POD_NAMESPACE
               valueFrom:
