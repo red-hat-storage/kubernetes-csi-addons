@@ -2,8 +2,6 @@ module github.com/csi-addons/kubernetes-csi-addons
 
 go 1.23.0
 
-toolchain go1.23.7
-
 require (
 	github.com/container-storage-interface/spec v1.10.0
 	github.com/csi-addons/spec v0.2.1-0.20241104111131-27825f744db5
