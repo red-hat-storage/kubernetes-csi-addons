@@ -51,6 +51,9 @@ spec:
       - args:
         - --namespace=$(POD_NAMESPACE)
         - --leader-elect
+        - --leader-election-lease-duration=137s
+        - --leader-election-renew-deadline=107s
+        - --leader-election-retry-period=26s
         command:
         - /csi-addons-manager
         env:
