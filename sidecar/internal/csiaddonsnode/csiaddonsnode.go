@@ -55,7 +55,7 @@ type Manager struct {
 	// CSI-driver that is included in the CSIAddonsNode object.
 	Client client.Client
 
-	// Config is a ReST Config for the Kubernets API.
+	// Config is a ReST Config for the Kubernetes API.
 	Config *rest.Config
 
 	// Node is the hostname of the system where the sidecar is running.
