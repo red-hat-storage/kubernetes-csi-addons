@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Kubernetes-CSI-Addons Authors.
+Copyright 2024 The Kubernetes-CSI-Addons Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,24 +21,23 @@ import (
 
 	replicationv1alpha1 "github.com/csi-addons/kubernetes-csi-addons/api/replication.storage/v1alpha1"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// getVolumeReplicationClass get volume replication class object from the subjected namespace and return the same.
-func (r VolumeReplicationReconciler) getVolumeReplicationClass(logger logr.Logger, vrcName string) (*replicationv1alpha1.VolumeReplicationClass, error) {
-	vrcObj := &replicationv1alpha1.VolumeReplicationClass{}
-	err := r.Get(context.TODO(), types.NamespacedName{Name: vrcName}, vrcObj)
+// getVolumeGroupReplicationClass fetches the volumegroupreplicationclass object in the given namespace and return the same.
+func (r VolumeGroupReplicationReconciler) getVolumeGroupReplicationClass(vgrClassName string) (*replicationv1alpha1.VolumeGroupReplicationClass, error) {
+	vgrClassObj := &replicationv1alpha1.VolumeGroupReplicationClass{}
+	err := r.Get(context.TODO(), types.NamespacedName{Name: vgrClassName}, vgrClassObj)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			logger.Error(err, "VolumeReplicationClass not found", "VolumeReplicationClass", vrcName)
+			r.log.Error(err, "VolumeGroupReplicationClass not found", "VolumeGroupReplicationClass", vgrClassName)
 		} else {
-			logger.Error(err, "Got an unexpected error while fetching VolumeReplicationClass", "VolumeReplicationClass", vrcName)
+			r.log.Error(err, "Got an unexpected error while fetching VolumeReplicationClass", "VolumeReplicationClass", vgrClassName)
 		}
 
 		return nil, err
 	}
 
-	return vrcObj, nil
+	return vgrClassObj, nil
 }
