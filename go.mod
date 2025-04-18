@@ -1,8 +1,6 @@
 module github.com/csi-addons/kubernetes-csi-addons
 
-go 1.22.7
-
-toolchain go1.22.9
+go 1.23.0
 
 require (
 	github.com/container-storage-interface/spec v1.10.0
@@ -72,7 +70,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/oauth2 v0.23.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
