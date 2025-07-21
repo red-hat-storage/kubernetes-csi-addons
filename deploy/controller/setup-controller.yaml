@@ -50,6 +50,7 @@ spec:
       containers:
       - args:
         - --namespace=$(POD_NAMESPACE)
+        - --schedule-precedence=storageclass
         - --leader-elect
         - --automaxprocs
         command:
