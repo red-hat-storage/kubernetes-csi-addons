@@ -139,6 +139,11 @@ func main() {
 		PodUID:       *podUID,
 	}
 
+	// If stale nodes are not cleaned up, just log and continue
+	if err := nodeMgr.CleanStaleNodes(); err != nil {
+		klog.Error(err)
+	}
+
 	// Start the watcher, it is responsible for fetching
 	// CSIAddonNode object and then calling deploy()
 	go func() {
