@@ -358,3 +358,36 @@ func (mgr *Manager) DispatchWatcher() error {
 	}
 	return fmt.Errorf("watcher for %s reached max retries, giving up", node.Name)
 }
+
+// CleanStaleNodes cleans the stale csi-addons resources that are
+// owned by a daemonset but don't have `-csi-addons` as a suffix.
+// FIXME: This should be removed at a later release
+func (mgr *Manager) CleanStaleNodes() error {
+	dynamicClient, err := dynamic.NewForConfig(mgr.Config)
+	if err != nil {
+		return fmt.Errorf("failed to create a dynamic client due to error: %w", err)
+	}
+
+	gvr := schema.GroupVersionResource{
+		Group:    csiaddonsv1alpha1.GroupVersion.Group,
+		Version:  csiaddonsv1alpha1.GroupVersion.Version,
+		Resource: "csiaddonsnodes",
+	}
+
+	// The stale CSIAddonNodes will always have a deterministic name
+	// We are just re-creating the same manually, skipping listing and iterating over
+	// See: https://github.com/ceph/ceph-csi-operator/blob/2587c60f521cc5457b7e76a9b1a3806190ce3c86/internal/controller/driver_controller.go#L1611
+	// e.g: NODE-NS-daemonset-openshift-storage.rbd.csi.ceph.com-nodeplugin
+	ownerName := mgr.PodNamespace + ".rbd.csi.ceph.com-nodeplugin"
+	name, err := generateName(mgr.Node, mgr.PodNamespace, "DaemonSet", ownerName)
+	if err != nil {
+		return fmt.Errorf("failed to generate name for stale CSIAddonsNode: %w", err)
+	}
+
+	if err = dynamicClient.Resource(gvr).Namespace(mgr.PodNamespace).Delete(context.TODO(), name, v1.DeleteOptions{}); ctrlClient.IgnoreNotFound(err) != nil {
+		return fmt.Errorf("failed to delete stale csi-addons node %s due to error: %w", name, err)
+	}
+	klog.Infof("Deleted stale csi-addons node %s ", name)
+
+	return nil
+}
