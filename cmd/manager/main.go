@@ -107,11 +107,20 @@ func main() {
 	flag.BoolVar(&enableAuth, "enable-auth", true, "Enables TLS and adds bearer token to the headers (enabled by default)")
 	flag.IntVar(&cfg.MaxGroupPVC, "max-group-pvc", cfg.MaxGroupPVC, "Maximum number of PVCs allowed in a volume group")
 	flag.IntVar(&cfg.CSIAddonsNodeRetryDelay, util.CsiaddonsNodeRetryDelayKey, cfg.CSIAddonsNodeRetryDelay, "Duration, in seconds, the CSIAddonsNode reconciler must wait before retrying the connection to csi-addons sidecar")
+	flag.IntVar(&cfg.CronJobStaggerWindow, util.CronJobStaggerWindowKey, cfg.CronJobStaggerWindow, "Duration, in hours, that the CronJobs for KeyRotation and ReclaimSpace are staggered within. Defaults to 2 hours, set as 0 to disable.")
 	opts := zap.Options{
 		Development: true,
 		TimeEncoder: zapcore.ISO8601TimeEncoder,
 	}
 	opts.BindFlags(flag.CommandLine)
+
+	// Backward-compatible klog flag:
+	// -v was the klog flag for log verbosity; alias it to --zap-log-level
+	// so that "-v=3" or "-v 3" continues to work after the migration to
+	// controller-runtime's zap logger.
+	if f := flag.CommandLine.Lookup("zap-log-level"); f != nil {
+		flag.CommandLine.Var(f.Value, "v", "Alias for --zap-log-level")
+	}
 	standardflags.AddAutomaxprocs(setupLog.Info)
 	flag.Parse()
 
@@ -234,8 +243,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.ReclaimSpaceCronJobReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		StaggerWindow: cfg.CronJobStaggerWindow,
 	}).SetupWithManager(mgr, ctrlOptions); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ReclaimSpaceCronJob")
 		os.Exit(1)
@@ -299,8 +309,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.EncryptionKeyRotationCronJobReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		StaggerWindow: cfg.CronJobStaggerWindow,
 	}).SetupWithManager(mgr, ctrlOptions); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "EncryptionKeyRotationCronJob")
 		os.Exit(1)
