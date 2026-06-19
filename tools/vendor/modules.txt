@@ -286,6 +286,9 @@ github.com/felixge/httpsnoop
 # github.com/fsnotify/fsnotify v1.7.0
 ## explicit; go 1.17
 github.com/fsnotify/fsnotify
+# github.com/fxamacker/cbor/v2 v2.7.0
+## explicit; go 1.17
+github.com/fxamacker/cbor/v2
 # github.com/go-errors/errors v1.4.2
 ## explicit; go 1.14
 github.com/go-errors/errors
@@ -307,7 +310,7 @@ github.com/go-git/go-git/v5/utils/ioutil
 # github.com/go-gorp/gorp/v3 v3.1.0
 ## explicit; go 1.18
 github.com/go-gorp/gorp/v3
-# github.com/go-logr/logr v1.4.1
+# github.com/go-logr/logr v1.4.2
 ## explicit; go 1.18
 github.com/go-logr/logr
 github.com/go-logr/logr/funcr
@@ -595,7 +598,7 @@ github.com/mitchellh/reflectwalk
 # github.com/moby/locker v1.0.1
 ## explicit; go 1.13
 github.com/moby/locker
-# github.com/moby/spdystream v0.2.0
+# github.com/moby/spdystream v0.4.0
 ## explicit; go 1.13
 github.com/moby/spdystream
 github.com/moby/spdystream/spdy
@@ -624,7 +627,7 @@ github.com/munnerz/goautoneg
 # github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
 ## explicit
 github.com/mxk/go-flowrate/flowrate
-# github.com/onsi/gomega v1.33.0
+# github.com/onsi/gomega v1.33.1
 ## explicit; go 1.20
 github.com/onsi/gomega/gstruct/errors
 github.com/onsi/gomega/types
@@ -903,6 +906,9 @@ github.com/ulikunitz/xz/lzma
 github.com/vbatts/tar-split/archive/tar
 github.com/vbatts/tar-split/tar/asm
 github.com/vbatts/tar-split/tar/storage
+# github.com/x448/float16 v0.8.4
+## explicit; go 1.11
+github.com/x448/float16
 # github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb
 ## explicit
 github.com/xeipuuv/gojsonpointer
@@ -1362,7 +1368,7 @@ k8s.io/apiextensions-apiserver/pkg/apiserver/schema/objectmeta
 k8s.io/apiextensions-apiserver/pkg/apiserver/schema/pruning
 k8s.io/apiextensions-apiserver/pkg/apiserver/validation
 k8s.io/apiextensions-apiserver/pkg/features
-# k8s.io/apimachinery v0.30.0
+# k8s.io/apimachinery v0.31.0
 ## explicit; go 1.22.0
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -1384,6 +1390,8 @@ k8s.io/apimachinery/pkg/labels
 k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/runtime/serializer
+k8s.io/apimachinery/pkg/runtime/serializer/cbor/direct
+k8s.io/apimachinery/pkg/runtime/serializer/cbor/internal/modes
 k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
@@ -1633,7 +1641,7 @@ k8s.io/component-base/metrics/prometheusextension
 k8s.io/component-base/tracing
 k8s.io/component-base/tracing/api/v1
 k8s.io/component-base/version
-# k8s.io/klog/v2 v2.120.1
+# k8s.io/klog/v2 v2.130.1
 ## explicit; go 1.18
 k8s.io/klog/v2
 k8s.io/klog/v2/internal/buffer
@@ -1670,7 +1678,7 @@ k8s.io/kubectl/pkg/util/slice
 k8s.io/kubectl/pkg/util/templates
 k8s.io/kubectl/pkg/util/term
 k8s.io/kubectl/pkg/validation
-# k8s.io/utils v0.0.0-20240102154912-e7106e64919e
+# k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 ## explicit; go 1.18
 k8s.io/utils/buffer
 k8s.io/utils/clock
@@ -1715,8 +1723,8 @@ sigs.k8s.io/controller-runtime/pkg/controller/controllerutil
 sigs.k8s.io/controller-runtime/pkg/internal/log
 sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/scheme
-# sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20240102165319-7f316f1309b1
-## explicit; go 1.20
+# sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250308055145-5fe7bb3edc86
+## explicit; go 1.22.0
 sigs.k8s.io/controller-runtime/tools/setup-envtest
 sigs.k8s.io/controller-runtime/tools/setup-envtest/env
 sigs.k8s.io/controller-runtime/tools/setup-envtest/remote

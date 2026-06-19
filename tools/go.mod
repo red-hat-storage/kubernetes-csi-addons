@@ -6,7 +6,7 @@ require (
 	github.com/operator-framework/operator-sdk v1.35.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.0
 	google.golang.org/protobuf v1.34.2
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20240102165319-7f316f1309b1
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250308055145-5fe7bb3edc86
 	sigs.k8s.io/controller-tools v0.15.0
 	sigs.k8s.io/kustomize/kustomize/v5 v5.4.3
 )
@@ -59,12 +59,13 @@ require (
 	github.com/fatih/structtag v1.1.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
 	github.com/go-git/go-git/v5 v5.11.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
@@ -126,7 +127,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/locker v1.0.1 // indirect
-	github.com/moby/spdystream v0.2.0 // indirect
+	github.com/moby/spdystream v0.4.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.1 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
@@ -135,7 +136,7 @@ require (
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
-	github.com/onsi/gomega v1.33.0 // indirect
+	github.com/onsi/gomega v1.33.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc6 // indirect
 	github.com/opencontainers/runc v1.1.12 // indirect
@@ -176,6 +177,7 @@ require (
 	github.com/thoas/go-funk v0.8.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -217,15 +219,15 @@ require (
 	helm.sh/helm/v3 v3.13.3 // indirect
 	k8s.io/api v0.30.0 // indirect
 	k8s.io/apiextensions-apiserver v0.30.0 // indirect
-	k8s.io/apimachinery v0.30.0 // indirect
+	k8s.io/apimachinery v0.31.0 // indirect
 	k8s.io/apiserver v0.30.0 // indirect
 	k8s.io/cli-runtime v0.29.0 // indirect
 	k8s.io/client-go v0.30.0 // indirect
 	k8s.io/component-base v0.30.0 // indirect
-	k8s.io/klog/v2 v2.120.1 // indirect
+	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/kubectl v0.29.0 // indirect
-	k8s.io/utils v0.0.0-20240102154912-e7106e64919e // indirect
+	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8 // indirect
 	oras.land/oras-go v1.2.5 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.29.0 // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
