@@ -23,8 +23,8 @@ re-introducing a bug when a user updates.
 
 Syncing branches (including the `main` branch) from upstream should be done
 with a Pull-Request. To create a PR that syncs the latest changes from
-`csi-addons/kubernetes-csi-addons:main` into the `main` branch, [click
-here][sync-pr].
+`csi-addons/kubernetes-csi-addons:main` into the `main` branch, wait for the
+automation from the **df-build-team** or [use this template][sync-pr].
 
 If any conflicts arises while syncing the latest changes from
 `csi-addons/kubernetes-csi-addons:main` into the `main` branch, instead
