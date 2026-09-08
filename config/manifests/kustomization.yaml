@@ -18,3 +18,7 @@ patches:
 # https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption
 #
 - path: manager_priority_patch.yaml
+# Require the restricted-v2 SCC for the controller pod on OpenShift.
+# This patch is only applied when generating the OLM bundle and does not
+# affect the manifests produced by `make manifests`.
+- path: manager_required_scc_patch.yaml
