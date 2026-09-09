@@ -23,7 +23,6 @@ import (
 	"reflect"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -311,9 +310,7 @@ func (r *VolumeGroupReplicationReconciler) Reconcile(ctx context.Context, req ct
 		} else {
 			r.log.Info("cannot delete volumeGroupReplication object yet, as the "+
 				"dependent resources are not yet deleted", "namespace", instance.Namespace, "name", instance.Name)
-			return reconcile.Result{
-				RequeueAfter: 10 * time.Second,
-			}, nil
+			return defaultRequeueForVGResources, nil
 		}
 
 		r.log.Info("volumeGroupReplication object is terminated, skipping reconciliation")
