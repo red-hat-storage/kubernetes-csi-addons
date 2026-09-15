@@ -63,6 +63,7 @@ type PersistentVolumeClaimReconciler struct {
 type Operation string
 
 var (
+	rsEnableAnnotation              = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/enable"
 	rsCronJobScheduleTimeAnnotation = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/schedule"
 	rsCronJobNameAnnotation         = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/cronjob"
 	rsCSIAddonsDriverAnnotation     = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/drivers"
