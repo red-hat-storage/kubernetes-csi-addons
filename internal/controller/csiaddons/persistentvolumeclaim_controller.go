@@ -63,6 +63,7 @@ type PersistentVolumeClaimReconciler struct {
 type Operation string
 
 var (
+	rsEnableAnnotation              = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/enable"
 	rsCronJobScheduleTimeAnnotation = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/schedule"
 	rsCronJobNameAnnotation         = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/cronjob"
 	rsCSIAddonsDriverAnnotation     = "reclaimspace." + csiaddonsv1alpha1.GroupVersion.Group + "/drivers"
@@ -301,6 +302,7 @@ func (r *PersistentVolumeClaimReconciler) storageClassEventHandler() handler.Eve
 				rsCronJobScheduleTimeAnnotation,
 				krcJobScheduleTimeAnnotation,
 				krEnableAnnotation,
+				rsEnableAnnotation,
 			}
 
 			var requests []reconcile.Request
@@ -375,8 +377,8 @@ func (r *PersistentVolumeClaimReconciler) SetupWithManager(mgr ctrl.Manager, ctr
 		return err
 	}
 
-	pvcPred := createAnnotationPredicate(rsCronJobScheduleTimeAnnotation, krcJobScheduleTimeAnnotation, krEnableAnnotation)
-	scPred := createAnnotationPredicate(rsCronJobScheduleTimeAnnotation, krcJobScheduleTimeAnnotation, krEnableAnnotation)
+	pvcPred := createAnnotationPredicate(rsCronJobScheduleTimeAnnotation, krcJobScheduleTimeAnnotation, krEnableAnnotation, rsEnableAnnotation)
+	scPred := createAnnotationPredicate(rsCronJobScheduleTimeAnnotation, krcJobScheduleTimeAnnotation, krEnableAnnotation, rsEnableAnnotation)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.PersistentVolumeClaim{}).
@@ -608,6 +610,25 @@ func (r *PersistentVolumeClaimReconciler) processReclaimSpace(
 			logger.Info("ReclaimSpaceCronJob is not managed, exiting reconcile")
 			return ctrl.Result{}, nil
 		}
+	}
+
+	disabled, err := r.checkDisabledByAnnotation(ctx, logger, pvc, rsEnableAnnotation)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if disabled {
+		if rsCronJob != nil {
+			err = r.Delete(ctx, rsCronJob)
+			if client.IgnoreNotFound(err) != nil {
+				errMsg := "failed to delete ReclaimSpaceCronJob"
+				logger.Error(err, errMsg)
+				return ctrl.Result{}, fmt.Errorf("%w: %s", err, errMsg)
+			}
+		}
+
+		logger.Info("ReclaimSpaceCronJob is disabled by annotation, exiting reconcile")
+		return ctrl.Result{}, nil
 	}
 
 	schedule, err := r.determineScheduleAndRequeue(ctx, logger, pvc, pv.Spec.CSI.Driver, rsCronJobScheduleTimeAnnotation)
