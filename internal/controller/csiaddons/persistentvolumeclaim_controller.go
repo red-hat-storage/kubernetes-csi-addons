@@ -611,6 +611,25 @@ func (r *PersistentVolumeClaimReconciler) processReclaimSpace(
 		}
 	}
 
+	disabled, err := r.checkDisabledByAnnotation(ctx, logger, pvc, rsEnableAnnotation)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if disabled {
+		if rsCronJob != nil {
+			err = r.Delete(ctx, rsCronJob)
+			if client.IgnoreNotFound(err) != nil {
+				errMsg := "failed to delete ReclaimSpaceCronJob"
+				logger.Error(err, errMsg)
+				return ctrl.Result{}, fmt.Errorf("%w: %s", err, errMsg)
+			}
+		}
+
+		logger.Info("ReclaimSpaceCronJob is disabled by annotation, exiting reconcile")
+		return ctrl.Result{}, nil
+	}
+
 	schedule, err := r.determineScheduleAndRequeue(ctx, logger, pvc, pv.Spec.CSI.Driver, rsCronJobScheduleTimeAnnotation)
 	if errors.Is(err, ErrConnNotFoundRequeueNeeded) {
 		return ctrl.Result{Requeue: true}, nil
