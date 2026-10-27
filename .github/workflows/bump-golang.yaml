@@ -1,0 +1,50 @@
+---
+# Weekly Go patch version bump for red-hat-storage/kubernetes-csi-addons.
+#
+# Required repository secrets:
+#   REDHAT_REGISTRY_USER     - registry.redhat.io service account username
+#   REDHAT_REGISTRY_PASSWORD - password for that service account
+#   GH_PAT                   - PAT with Contents + Workflows (R/W) on
+#                              odf-bot/kubernetes-csi-addons.
+name: Go patch version bump
+
+# yamllint disable-line rule:truthy
+on:
+  schedule:
+    # Weekly on Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: go-patch-version-bump
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    if: github.repository == 'red-hat-storage/kubernetes-csi-addons'
+    steps:
+      - name: Go patch version bump
+        # yamllint disable-line rule:line-length
+        uses: red-hat-storage/actions/go-patch-version@6887b7caf08b5ca073b6a9616bc764251755b2c4 # V1.0.0
+        with:
+          token: ${{ secrets.GH_PAT }}
+          registry-username: ${{ secrets.REDHAT_REGISTRY_USER }}
+          registry-password: ${{ secrets.REDHAT_REGISTRY_PASSWORD }}
+          fork-repo: odf-bot/kubernetes-csi-addons
+          # main and release-5.0 excluded as they are active.
+          branches: |
+            release-4.22:rhel_9_golang_1.25
+            release-4.21:rhel_9_golang_1.25
+            release-4.20:rhel_9_golang_1.25
+            release-4.19:rhel_9_golang_1.25
+            release-4.18:rhel_9_golang_1.25
+          # We don't ship tools, so that is excluded.
+          go-mod-paths: .
+          containerfiles: |
+            Dockerfile
+            build/Containerfile.sidecar
