@@ -68,12 +68,17 @@ changes required that are not suitable for the upstream Ceph-CSI project.
 1. `OWNERS_ALIASES` file: members of the Ceph-CSI team
 1. `redhat/` directory: additional files (like this `README.md`)
 1. `.github/PULL_REQUEST_TEMPLATE/redhat-*`: guidance for creating PRs
+1. `.github/workflows/bump-golang.yaml`: weekly Go patch bumps
 
 ## Continuous Integration
 
 OpenShift CI (Prow) is used for testing the changes that land in this GitHub
 repository. The configuration of the jobs can be found in the [OpenShift
 Release repository][ocp-release].
+
+A GitHub Actions workflow ([bump-golang][bump-golang]) runs weekly
+(and on demand). It reads the Go version from the OpenShift golang-builder
+image and, when newer, opens or updates a PR via `odf-bot/kubernetes-csi-addons`.
 
 ### Bugzilla Plugin
 
@@ -89,3 +94,4 @@ for the new branch as well.
 [ds-only-pr]: https://github.com/red-hat-storage/kubernetes-csi-addons/compare/main...csi-addons:main?template=redhat-downstream-only.md
 [ocp-release]: https://github.com/openshift/release/tree/master/ci-operator/config/red-hat-storage/kubernetes-csi-addons
 [bz-config]: https://github.com/openshift/release/blob/master/core-services/prow/02_config/red-hat-storage/kubernetes-csi-addons/_pluginconfig.yaml
+[bump-golang]: https://github.com/red-hat-storage/kubernetes-csi-addons/blob/devel/.github/workflows/bump-golang.yaml
