@@ -5,7 +5,7 @@ metadata:
     alm-examples: '[]'
     capabilities: Seamless Upgrades
     olm.skipRange: @SKIP_RANGE@
-    operators.operatorframework.io/operator-type: non-standalone
+    operators.operatorframework.io/operator-type: standalone
   name: @PACKAGE_NAME@.v0.1.1
   namespace: placeholder
 spec:
