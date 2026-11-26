@@ -70,6 +70,7 @@ type CSIAddonsNodeReconciler struct {
 	ConnPool       *connection.ConnectionPool
 	EnableAuth     bool
 	BaseRetryDelay time.Duration
+	Timeout        time.Duration
 }
 
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch
@@ -235,7 +236,7 @@ func (r *CSIAddonsNodeReconciler) getNetworkFenceClientStatus(ctx context.Contex
 	var nfsc []csiaddonsv1alpha1.NetworkFenceClientStatus
 
 	for _, nfc := range nfclasses {
-		clients, err := getFenceClientDetails(ctx, conn, logger, nfc)
+		clients, err := r.getFenceClientDetails(ctx, conn, logger, nfc)
 		if err != nil {
 			logger.Error(err, "Failed to get clients to fence", "networkFenceClass", nfc.Name)
 			return nil, err
@@ -270,7 +271,7 @@ func (r *CSIAddonsNodeReconciler) getClientDetails(clients *proto.FenceClientsRe
 }
 
 // getFenceClientDetails gets the list of clients to fence from the driver.
-func getFenceClientDetails(ctx context.Context, conn *connection.Connection, logger *logr.Logger, nfc csiaddonsv1alpha1.NetworkFenceClass) (*proto.FenceClientsResponse, error) {
+func (r *CSIAddonsNodeReconciler) getFenceClientDetails(ctx context.Context, conn *connection.Connection, logger *logr.Logger, nfc csiaddonsv1alpha1.NetworkFenceClass) (*proto.FenceClientsResponse, error) {
 
 	param := nfc.Spec.Parameters
 	secretName := param[prefixedNetworkFenceSecretNameKey]
@@ -291,7 +292,10 @@ func getFenceClientDetails(ctx context.Context, conn *connection.Connection, log
 				SecretName:      secretName,
 				SecretNamespace: secretNamespace,
 			}
-			clients, err := client.GetFenceClients(ctx, req)
+			timeoutContext, cancel := context.WithTimeout(ctx, r.Timeout)
+			defer cancel()
+
+			clients, err := client.GetFenceClients(timeoutContext, req)
 			if err != nil {
 				logger.Error(err, "Failed to get clients to fence")
 				return nil, err
