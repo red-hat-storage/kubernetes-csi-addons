@@ -19,7 +19,7 @@ github.com/cenkalti/backoff/v5
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/container-storage-interface/spec v1.13.0
+# github.com/container-storage-interface/spec v1.14.0
 ## explicit; go 1.25.0
 github.com/container-storage-interface/spec/lib/go/csi
 # github.com/csi-addons/spec v0.2.1-0.20260515055340-d4a373713b9a
@@ -1195,7 +1195,7 @@ sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client/metrics
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/common/metrics
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/proto/client
-# sigs.k8s.io/controller-runtime v0.25.2
+# sigs.k8s.io/controller-runtime v0.25.3
 ## explicit; go 1.26.0
 sigs.k8s.io/controller-runtime
 sigs.k8s.io/controller-runtime/pkg/builder
